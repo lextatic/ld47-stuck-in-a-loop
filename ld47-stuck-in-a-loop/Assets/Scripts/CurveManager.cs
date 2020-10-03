@@ -5,6 +5,7 @@ public class CurveManager : MonoBehaviour
 {
 	public PathCreator PathCreator;
 	public Car Car;
+	public LoopManager LoopManager;
 
 	public float PerfectReleaseDistance;
 	public float GreatReleaseDistance;
@@ -46,6 +47,7 @@ public class CurveManager : MonoBehaviour
 		{
 			if (Car.DistanceTraveled < Curves[0].EntranceDistance)
 			{
+				LoopManager.NewLap();
 				_waitingNewLap = false;
 			}
 			else
@@ -75,6 +77,7 @@ public class CurveManager : MonoBehaviour
 			if (_speedOverflow > ((Curves[_currentCurveIndex].ExitDistance - Curves[_currentCurveIndex].EntranceDistance) / Car.MaxSpeed) * CrashAccelerationThresholdTime)
 			{
 				Car.Crash(Curves[_currentCurveIndex].ExitDistance);
+				LoopManager.CurveDone(CurveOutcome.Crash);
 				NextCurve();
 			}
 		}
@@ -91,15 +94,15 @@ public class CurveManager : MonoBehaviour
 			{
 				if (distanceFromExitPoint < PerfectReleaseDistance)
 				{
-					Debug.Log("Perfect");
+					LoopManager.CurveDone(CurveOutcome.Perfect);
 				}
 				else if (distanceFromExitPoint < GreatReleaseDistance)
 				{
-					Debug.Log("Great");
+					LoopManager.CurveDone(CurveOutcome.Great);
 				}
 				else
 				{
-					Debug.Log("Miss");
+					LoopManager.CurveDone(CurveOutcome.Miss);
 				}
 
 				NextCurve();
@@ -108,7 +111,7 @@ public class CurveManager : MonoBehaviour
 			{
 				if (distanceFromExitPoint > ReleaseDistanceCheck)
 				{
-					Debug.Log("Failure");
+					LoopManager.CurveDone(CurveOutcome.Miss);
 					NextCurve();
 				}
 			}
