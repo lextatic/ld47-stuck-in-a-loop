@@ -1,4 +1,5 @@
 using PathCreation;
+using System.Collections;
 using UnityEngine;
 
 public class Car : MonoBehaviour
@@ -8,40 +9,68 @@ public class Car : MonoBehaviour
 	public float Acceleration = 5f;
 	public float Deceleration = 1f;
 
-	private float _distanceTraveled;
-	private float _currentSpeed;
+	private bool _isCrashing;
 
-	public float DistanceTraveled => _distanceTraveled;
-
-	public float CurrentSpeed => _currentSpeed;
+	public float DistanceTraveled { get; private set; }
+	public float CurrentSpeed { get; private set; }
 
 	private void Start()
 	{
-		_distanceTraveled = 0;
-		_currentSpeed = 0;
+		_isCrashing = false;
+		DistanceTraveled = 0;
+		CurrentSpeed = 0;
 	}
 
 	private void Update()
 	{
+		if (!_isCrashing)
+		{
+			UpdateSpeed();
+			UpdateCar();
+		}
+	}
+
+	public void UpdateSpeed()
+	{
 		if (Input.anyKey)
 		{
-			_currentSpeed = _currentSpeed + Acceleration * Time.deltaTime;
+			CurrentSpeed = CurrentSpeed + Acceleration * Time.deltaTime;
 		}
 		else
 		{
-			_currentSpeed = _currentSpeed - Deceleration * Time.deltaTime;
+			CurrentSpeed = CurrentSpeed - Deceleration * Time.deltaTime;
 		}
 
-		_currentSpeed = Mathf.Clamp(_currentSpeed, 0, MaxSpeed);
+		CurrentSpeed = Mathf.Clamp(CurrentSpeed, 0, MaxSpeed);
+	}
 
-		_distanceTraveled += _currentSpeed * Time.deltaTime;
+	private void UpdateCar()
+	{
+		DistanceTraveled += CurrentSpeed * Time.deltaTime;
 
-		if (_distanceTraveled > PathCreator.path.length)
+		if (DistanceTraveled > PathCreator.path.length)
 		{
-			_distanceTraveled -= PathCreator.path.length;
+			DistanceTraveled -= PathCreator.path.length;
 		}
 
-		transform.position = PathCreator.path.GetPointAtDistance(_distanceTraveled);
-		transform.rotation = PathCreator.path.GetRotationAtDistance(_distanceTraveled);
+		transform.position = PathCreator.path.GetPointAtDistance(DistanceTraveled);
+		transform.rotation = PathCreator.path.GetRotationAtDistance(DistanceTraveled);
+	}
+
+	public void Crash(float distance)
+	{
+		_isCrashing = true;
+
+		StartCoroutine(CrashSequence(distance));
+	}
+
+	private IEnumerator CrashSequence(float distance)
+	{
+		// Animate crash
+		yield return new WaitForSeconds(2f);
+		CurrentSpeed = 0;
+		DistanceTraveled = distance;
+		UpdateCar();
+		_isCrashing = false;
 	}
 }

@@ -10,36 +10,61 @@ public class CurveManager : MonoBehaviour
 	public float GreatReleaseDistance;
 	public float ReleaseDistanceCheck;
 
-	public float DriftOffAccelerationThresholdTime = 0.5f;
+	public float CrashAccelerationThresholdTime = 0.5f;
+
+	public GameObject MarkPrefab;
 
 	public Curve[] Curves;
 
 	private int _currentCurveIndex;
 	private float _speedOverflow;
-	private bool _driftOffCheck;
+	private bool _crashCheck;
+	private bool _waitingNewLap;
 
 	public void Start()
 	{
 		_currentCurveIndex = 0;
 		_speedOverflow = 0;
-		_driftOffCheck = true;
-	}
+		_crashCheck = true;
+		_waitingNewLap = false;
 
-	public bool check = false;
+		foreach (var curve in Curves)
+		{
+			var mark1 = Instantiate(MarkPrefab);
+			mark1.transform.position = PathCreator.path.GetPointAtDistance(curve.EntranceDistance);
+			mark1.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.EntranceDistance);
+
+			var mark2 = Instantiate(MarkPrefab);
+			mark2.transform.position = PathCreator.path.GetPointAtDistance(curve.ExitDistance);
+			mark2.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.ExitDistance);
+		}
+	}
 
 	public void Update()
 	{
-		// Remover esse lixo
-		if (Car.DistanceTraveled < 5) check = false;
+		if (_waitingNewLap)
+		{
+			if (Car.DistanceTraveled < Curves[0].EntranceDistance)
+			{
+				_waitingNewLap = false;
+			}
+			else
+			{
+				return;
+			}
+		}
+		CrashCheck();
+		ReleaseCheck();
+	}
 
-		if (check) return;
-
-		// Drift off check
-		if (_driftOffCheck && Car.DistanceTraveled > Curves[_currentCurveIndex].EntranceDistance)
+	private void CrashCheck()
+	{
+		// Crash check
+		if (_crashCheck && Car.DistanceTraveled > Curves[_currentCurveIndex].EntranceDistance)
 		{
 			if (Car.CurrentSpeed < Car.MaxSpeed * Curves[_currentCurveIndex].MaxSpeedThreshold)
 			{
-				_driftOffCheck = false;
+				_crashCheck = false;
 			}
 
 			if (Input.anyKey)
@@ -47,14 +72,12 @@ public class CurveManager : MonoBehaviour
 				_speedOverflow += Time.deltaTime;
 			}
 
-			if (_speedOverflow > ((Curves[_currentCurveIndex].ExitDistance - Curves[_currentCurveIndex].EntranceDistance) / Car.MaxSpeed) * DriftOffAccelerationThresholdTime)
+			if (_speedOverflow > ((Curves[_currentCurveIndex].ExitDistance - Curves[_currentCurveIndex].EntranceDistance) / Car.MaxSpeed) * CrashAccelerationThresholdTime)
 			{
-				Debug.Log("Drift off");
-				ResetLap();
+				Car.Crash(Curves[_currentCurveIndex].ExitDistance);
+				NextCurve();
 			}
 		}
-
-		ReleaseCheck();
 	}
 
 	private void ReleaseCheck()
@@ -79,24 +102,31 @@ public class CurveManager : MonoBehaviour
 					Debug.Log("Miss");
 				}
 
-				ResetLap();
+				NextCurve();
 			}
 			else
 			{
 				if (distanceFromExitPoint > ReleaseDistanceCheck)
 				{
 					Debug.Log("Failure");
-					ResetLap();
+					NextCurve();
 				}
 			}
 		}
 	}
 
-	private void ResetLap()
+	private void NextCurve()
 	{
+		_currentCurveIndex++;
+
+		if (_currentCurveIndex >= Curves.Length)
+		{
+			_currentCurveIndex = 0;
+			_waitingNewLap = true;
+		}
+
+		_crashCheck = true;
 		_speedOverflow = 0;
-		check = true;
-		_driftOffCheck = true;
 	}
 
 	public void OnDrawGizmos()
@@ -109,16 +139,16 @@ public class CurveManager : MonoBehaviour
 			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.EntranceDistance), 0.5f);
 			Gizmos.color = Color.cyan;
 			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance), 0.5f);
-		}
 
-		Gizmos.color = Color.green;
-		Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(Curves[_currentCurveIndex].ExitDistance - PerfectReleaseDistance), 0.2f);
-		Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(Curves[_currentCurveIndex].ExitDistance + PerfectReleaseDistance), 0.2f);
-		Gizmos.color = Color.yellow;
-		Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(Curves[_currentCurveIndex].ExitDistance - GreatReleaseDistance), 0.2f);
-		Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(Curves[_currentCurveIndex].ExitDistance + GreatReleaseDistance), 0.2f);
-		Gizmos.color = Color.red;
-		Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(Curves[_currentCurveIndex].ExitDistance - ReleaseDistanceCheck), 0.2f);
-		Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(Curves[_currentCurveIndex].ExitDistance + ReleaseDistanceCheck), 0.2f);
+			Gizmos.color = Color.green;
+			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance - PerfectReleaseDistance), 0.2f);
+			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance + PerfectReleaseDistance), 0.2f);
+			Gizmos.color = Color.yellow;
+			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance - GreatReleaseDistance), 0.2f);
+			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance + GreatReleaseDistance), 0.2f);
+			Gizmos.color = Color.red;
+			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance - ReleaseDistanceCheck), 0.2f);
+			Gizmos.DrawWireSphere(PathCreator.path.GetPointAtDistance(curve.ExitDistance + ReleaseDistanceCheck), 0.2f);
+		}
 	}
 }
