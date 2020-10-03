@@ -1,6 +1,7 @@
 using PathCreation;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Car : MonoBehaviour
 {
@@ -14,10 +15,13 @@ public class Car : MonoBehaviour
 	public Transform[] Wheels;
 	public Transform[] TurnAxis;
 
+	public Image SpeedBar;
+
 	private bool _isCrashing;
 	private HingeJoint _hingeJoin;
 	private Rigidbody _rigidbody;
 	private Rigidbody _attachedBody;
+	private float _barFraction;
 
 	public float DistanceTraveled { get; private set; }
 	public float CurrentSpeed { get; private set; }
@@ -32,6 +36,7 @@ public class Car : MonoBehaviour
 		_rigidbody = GetComponent<Rigidbody>();
 		_attachedBody = _hingeJoin.connectedBody;
 		_rigidbody.MovePosition(PathCreator.path.GetPointAtDistance(DistanceTraveled));
+		_barFraction = MaxSpeed / 8f; // My graphic has 8 slots
 	}
 
 	public void Update()
@@ -47,20 +52,25 @@ public class Car : MonoBehaviour
 		{
 			turnAxis.rotation = PathCreator.path.GetRotationAtDistance(DistanceTraveled + .2f);
 		}
+
+		int barSlots = (int)(CurrentSpeed / _barFraction);
+
+		SpeedBar.fillAmount = (barSlots * _barFraction) / MaxSpeed;
 	}
 
 	public void FixedUpdate()
 	{
+		UpdateSpeed();
+
 		if (!_isCrashing)
 		{
-			UpdateSpeed();
 			UpdateCar();
 		}
 	}
 
 	public void UpdateSpeed()
 	{
-		if (Input.anyKey)
+		if (!_isCrashing && Input.anyKey)
 		{
 			CurrentSpeed = CurrentSpeed + Acceleration * Time.deltaTime;
 		}
