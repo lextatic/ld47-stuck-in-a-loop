@@ -13,7 +13,8 @@ public class CurveManager : MonoBehaviour
 
 	public float CrashAccelerationThresholdTime = 0.5f;
 
-	public GameObject MarkPrefab;
+	public GameObject MarkEnterPrefab;
+	public GameObject MarkExitPrefab;
 
 	public Curve[] Curves;
 
@@ -31,11 +32,11 @@ public class CurveManager : MonoBehaviour
 
 		foreach (var curve in Curves)
 		{
-			var mark1 = Instantiate(MarkPrefab);
+			var mark1 = Instantiate(MarkEnterPrefab);
 			mark1.transform.position = PathCreator.path.GetPointAtDistance(curve.EntranceDistance);
 			mark1.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.EntranceDistance);
 
-			var mark2 = Instantiate(MarkPrefab);
+			var mark2 = Instantiate(MarkExitPrefab);
 			mark2.transform.position = PathCreator.path.GetPointAtDistance(curve.ExitDistance);
 			mark2.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.ExitDistance);
 		}
