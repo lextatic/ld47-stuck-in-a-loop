@@ -28,9 +28,10 @@ public class LoopManager : MonoBehaviour
 	public TextMeshProUGUI MissText;
 	public TextMeshProUGUI CrashText;
 
-	private float _currentScore;
 	private float _barFraction;
 	private bool _victory;
+
+	public float CurrentScore { get; private set; }
 
 	public void Start()
 	{
@@ -43,11 +44,11 @@ public class LoopManager : MonoBehaviour
 	{
 		if (_victory) return;
 
-		_currentScore -= ScoreDecreaseRate * Time.deltaTime;
+		CurrentScore -= ScoreDecreaseRate * Time.deltaTime;
 
-		if (_currentScore < 0)
+		if (CurrentScore < 0)
 		{
-			_currentScore = 0;
+			CurrentScore = 0;
 		}
 
 		UpdateUI();
@@ -55,11 +56,11 @@ public class LoopManager : MonoBehaviour
 
 	private void UpdateUI()
 	{
-		int barSlots = (int)(_currentScore / _barFraction);
+		int barSlots = (int)(CurrentScore / _barFraction);
 
 		Scorebar.fillAmount = (barSlots * _barFraction) / ScoreNeededForLevel;
 
-		ScorebarGlow.SetActive(_currentScore >= ScoreNeededForLevel);
+		ScorebarGlow.SetActive(CurrentScore >= ScoreNeededForLevel);
 	}
 
 	public void CurveDone(CurveOutcome outcome)
@@ -67,7 +68,7 @@ public class LoopManager : MonoBehaviour
 		switch (outcome)
 		{
 			case CurveOutcome.Crash:
-				_currentScore -= Car.MaxSpeed * 0.2f;
+				CurrentScore -= Car.MaxSpeed * 0.2f;
 				AnimateText(CrashText);
 				break;
 
@@ -76,12 +77,12 @@ public class LoopManager : MonoBehaviour
 				break;
 
 			case CurveOutcome.Great:
-				_currentScore += Car.CurrentSpeed * 0.5f;
+				CurrentScore += Car.CurrentSpeed * 0.5f;
 				AnimateText(GreatText);
 				break;
 
 			case CurveOutcome.Perfect:
-				_currentScore += Car.CurrentSpeed;
+				CurrentScore += Car.CurrentSpeed;
 				AnimateText(PerfectText);
 				break;
 		}
@@ -105,7 +106,7 @@ public class LoopManager : MonoBehaviour
 
 	public void NewLap()
 	{
-		if (_currentScore >= ScoreNeededForLevel)
+		if (CurrentScore >= ScoreNeededForLevel)
 		{
 			//Debug.Log("Victory!");
 			Car.TimeWarp();

@@ -16,6 +16,8 @@ public class CurveManager : MonoBehaviour
 	public GameObject MarkEnterPrefab;
 	public GameObject MarkExitPrefab;
 
+	public GameObject MachinePrefab;
+
 	public Curve[] Curves;
 
 	private int _currentCurveIndex;
@@ -39,6 +41,10 @@ public class CurveManager : MonoBehaviour
 			var mark2 = Instantiate(MarkExitPrefab);
 			mark2.transform.position = PathCreator.path.GetPointAtDistance(curve.ExitDistance);
 			mark2.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.ExitDistance);
+
+			var machine = Instantiate(MachinePrefab);
+			machine.transform.position = PathCreator.path.GetPointAtDistance(0);
+			machine.transform.rotation = PathCreator.path.GetRotationAtDistance(0);
 		}
 	}
 
