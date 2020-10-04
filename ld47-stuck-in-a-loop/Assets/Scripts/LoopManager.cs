@@ -28,6 +28,16 @@ public class LoopManager : MonoBehaviour
 	public TextMeshProUGUI MissText;
 	public TextMeshProUGUI CrashText;
 
+	public AudioClip VoicePerfectSound;
+	public AudioClip VoiceGreatSound;
+	public AudioClip VoiceMissSound;
+	public AudioClip VoiceCrashSound;
+	public AudioClip CuePerfectSound;
+	public AudioClip CueGreatSound;
+	public AudioClip CueMissSound;
+
+	public AudioSource AudioSource;
+
 	private float _barFraction;
 	private bool _victory;
 
@@ -70,24 +80,37 @@ public class LoopManager : MonoBehaviour
 			case CurveOutcome.Crash:
 				CurrentScore -= Car.MaxSpeed * 0.2f;
 				AnimateText(CrashText);
+				PlaySound(VoiceCrashSound, 0.5f);
 				break;
 
 			case CurveOutcome.Miss:
 				AnimateText(MissText);
+				PlaySound(VoiceMissSound, 0.7f);
+				PlaySound(CueMissSound, 0.2f);
 				break;
 
 			case CurveOutcome.Great:
 				CurrentScore += Car.CurrentSpeed * 0.5f;
 				AnimateText(GreatText);
+				PlaySound(VoiceGreatSound, 0.7f);
+				PlaySound(CueGreatSound, 0.2f);
 				break;
 
 			case CurveOutcome.Perfect:
 				CurrentScore += Car.CurrentSpeed;
 				AnimateText(PerfectText);
+				PlaySound(VoicePerfectSound, 0.7f);
+				PlaySound(CuePerfectSound, 0.2f);
 				break;
 		}
 
 		UpdateUI();
+	}
+
+	private void PlaySound(AudioClip audioClip, float volume)
+	{
+		AudioSource.volume = volume;
+		AudioSource.PlayOneShot(audioClip);
 	}
 
 	private void AnimateText(TextMeshProUGUI text)

@@ -1,4 +1,6 @@
+using DG.Tweening;
 using PathCreation;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CurveManager : MonoBehaviour
@@ -24,6 +26,13 @@ public class CurveManager : MonoBehaviour
 	private float _speedOverflow;
 	private bool _crashCheck;
 	private bool _waitingNewLap;
+	private List<Material> _markMaterials;
+
+	public void Awake()
+	{
+		_markMaterials = new List<Material>();
+		BuildSceneObjects(true);
+	}
 
 	public void Start()
 	{
@@ -31,9 +40,18 @@ public class CurveManager : MonoBehaviour
 		_speedOverflow = 0;
 		_crashCheck = true;
 		_waitingNewLap = false;
+
+		var exitMarks = GameObject.FindGameObjectsWithTag("ExitMark");
+
+		foreach (var mark in exitMarks)
+		{
+			var material = mark.GetComponent<Renderer>().material;
+			material.EnableKeyword("_EMISSION");
+			_markMaterials.Add(material);
+		}
 	}
 
-	public void BuildSceneObjects()
+	public void BuildSceneObjects(bool runtime)
 	{
 		var previousDynamicObjects = GameObject.FindGameObjectsWithTag("Dynamic");
 		foreach (var dynamicObject in previousDynamicObjects)
@@ -50,6 +68,13 @@ public class CurveManager : MonoBehaviour
 			var mark2 = Instantiate(MarkExitPrefab);
 			mark2.transform.position = PathCreator.path.GetPointAtDistance(curve.ExitDistance);
 			mark2.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.ExitDistance);
+
+			if (runtime)
+			{
+				var material = mark2.GetComponentInChildren<Renderer>().material;
+				material.EnableKeyword("_EMISSION");
+				_markMaterials.Add(material);
+			}
 		}
 
 		var machine = Instantiate(MachinePrefab);
@@ -111,14 +136,17 @@ public class CurveManager : MonoBehaviour
 				if (distanceFromExitPoint < PerfectReleaseDistance)
 				{
 					LoopManager.CurveDone(CurveOutcome.Perfect);
+					GlowExitMark(new Color(44f / 255f, 130f / 255f, 12f / 255f));
 				}
 				else if (distanceFromExitPoint < GreatReleaseDistance)
 				{
 					LoopManager.CurveDone(CurveOutcome.Great);
+					GlowExitMark(new Color(147f / 255f, 98f / 255f, 3f / 255f));
 				}
 				else
 				{
 					LoopManager.CurveDone(CurveOutcome.Miss);
+					GlowExitMark(new Color(130 / 255f, 0f / 255f, 10f / 255f));
 				}
 
 				NextCurve();
@@ -128,10 +156,18 @@ public class CurveManager : MonoBehaviour
 				if (distanceFromExitPoint > ReleaseDistanceCheck)
 				{
 					LoopManager.CurveDone(CurveOutcome.Miss);
+					GlowExitMark(new Color(130 / 255f, 0f / 255f, 10f / 255f));
 					NextCurve();
 				}
 			}
 		}
+	}
+
+	private void GlowExitMark(Color color)
+	{
+		//_markMaterials[_currentCurveIndex].SetColor("_EmissionColor", Color.white);
+
+		_markMaterials[_currentCurveIndex].DOColor(color, "_EmissionColor", 0.2f).From();
 	}
 
 	private void NextCurve()

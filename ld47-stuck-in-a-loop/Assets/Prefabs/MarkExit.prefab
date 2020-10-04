@@ -63,5 +63,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: Quad
       objectReference: {fileID: 0}
+    - target: {fileID: 7744704934869319873, guid: 094fc8de46f0ea34fbec9370568bb5da, type: 3}
+      propertyPath: m_TagString
+      value: ExitMark
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 094fc8de46f0ea34fbec9370568bb5da, type: 3}

@@ -6,6 +6,7 @@ public class Machine : MonoBehaviour
 	public Transform WheelLeft;
 
 	public ParticleSystem[] Lightnings;
+	public AudioSource ElectricityAudioSource;
 
 	public float MaxRotationSpeed;
 
@@ -26,5 +27,7 @@ public class Machine : MonoBehaviour
 			var emission = particleSystem.emission;
 			emission.rateOverTime = Random.Range(2, 4) + (LoopManager.CurrentScore / LoopManager.ScoreNeededForLevel) * 76;
 		}
+
+		ElectricityAudioSource.pitch = 0.7f + (LoopManager.CurrentScore / LoopManager.ScoreNeededForLevel) * 0.2f;
 	}
 }

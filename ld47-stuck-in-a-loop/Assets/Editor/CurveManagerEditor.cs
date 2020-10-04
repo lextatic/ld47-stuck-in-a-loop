@@ -11,7 +11,7 @@ public class CurveManagerEditor : Editor
 		CurveManager myScript = (CurveManager)target;
 		if (GUILayout.Button("Build Scene Objects"))
 		{
-			myScript.BuildSceneObjects();
+			myScript.BuildSceneObjects(false);
 		}
 	}
 }
