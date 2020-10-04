@@ -14,10 +14,12 @@ public class Car : MonoBehaviour
 	public Transform[] TurnAxis;
 	public Transform[] FireParticlesSpawner;
 	public GameObject FireParticlesPrefab;
+	public GameObject FireSoundPrefab;
 
 	public Image SpeedBar;
 
-	public AudioSource carMotorSound;
+	public AudioSource CarMotorSound;
+	public CrashSounds CrashSounds;
 
 	private MeshCollider _roadMeshCollider;
 	private bool _isCrashing;
@@ -64,7 +66,7 @@ public class Car : MonoBehaviour
 
 		SpeedBar.fillAmount = (barSlots * _barFraction) / MaxSpeed;
 
-		carMotorSound.pitch = 0.2f + (0.8f * CurrentSpeed / MaxSpeed);
+		CarMotorSound.pitch = 0.2f + (0.8f * CurrentSpeed / MaxSpeed);
 
 		if (_isWarping)
 		{
@@ -110,9 +112,6 @@ public class Car : MonoBehaviour
 
 		_rigidbody.MovePosition(PathCreator.path.GetPointAtDistance(DistanceTraveled) + new Vector3(0, 0.08f, 0));
 		_rigidbody.MoveRotation(PathCreator.path.GetRotationAtDistance(DistanceTraveled));
-
-		//transform.position = PathCreator.path.GetPointAtDistance(DistanceTraveled);
-		//transform.rotation = PathCreator.path.GetRotationAtDistance(DistanceTraveled);
 	}
 
 	public void Crash(float distance)
@@ -130,7 +129,11 @@ public class Car : MonoBehaviour
 		_attachedBody.AddTorque(new Vector3(Random.Range(-1000f, 1000f), 0, Random.Range(-1000f, 1000f)), ForceMode.VelocityChange);
 		_attachedBody.AddForce(0, 150, 0);
 
+		CrashSounds.ToggleCrashSounds(true);
+
 		yield return new WaitForSeconds(2f);
+
+		CrashSounds.ToggleCrashSounds(false);
 
 		_roadMeshCollider.enabled = false;
 
@@ -156,6 +159,8 @@ public class Car : MonoBehaviour
 		MaxSpeed *= 1.2f;
 		CurrentSpeed = MaxSpeed;
 
+		Instantiate(FireSoundPrefab, transform.position, Quaternion.identity);
+
 		StartCoroutine(WarpSequence());
 	}
 
@@ -163,6 +168,7 @@ public class Car : MonoBehaviour
 	{
 		yield return new WaitForSeconds(0.4f);
 
+		Instantiate(FireSoundPrefab, transform.position, Quaternion.identity);
 		gameObject.SetActive(false);
 		SpeedBar.fillAmount = 0;
 	}
