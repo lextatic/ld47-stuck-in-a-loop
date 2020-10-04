@@ -126,6 +126,8 @@ public class CurveManager : MonoBehaviour
 
 	private void ReleaseCheck()
 	{
+		if (LoopManager.Victory) return;
+
 		// Car is in range for checking score
 		if (Car.DistanceTraveled > Curves[_currentCurveIndex].ExitDistance - ReleaseDistanceCheck)
 		{

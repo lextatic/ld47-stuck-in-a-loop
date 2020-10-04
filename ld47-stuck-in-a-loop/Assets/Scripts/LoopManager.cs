@@ -39,20 +39,20 @@ public class LoopManager : MonoBehaviour
 	public AudioSource AudioSource;
 
 	private float _barFraction;
-	private bool _victory;
 
+	public bool Victory { get; private set; }
 	public float CurrentScore { get; private set; }
 
 	public void Start()
 	{
 		_barFraction = ScoreNeededForLevel / 40f; // My graphic has 40 slots
 		ScorebarGlow.SetActive(false);
-		_victory = false;
+		Victory = false;
 	}
 
 	public void Update()
 	{
-		if (_victory) return;
+		if (Victory) return;
 
 		CurrentScore -= ScoreDecreaseRate * Time.deltaTime;
 
@@ -78,7 +78,6 @@ public class LoopManager : MonoBehaviour
 		switch (outcome)
 		{
 			case CurveOutcome.Crash:
-				CurrentScore -= Car.MaxSpeed * 0.2f;
 				AnimateText(CrashText);
 				PlaySound(VoiceCrashSound, 0.5f);
 				break;
@@ -133,7 +132,7 @@ public class LoopManager : MonoBehaviour
 		{
 			//Debug.Log("Victory!");
 			Car.TimeWarp();
-			_victory = true;
+			Victory = true;
 		}
 	}
 }

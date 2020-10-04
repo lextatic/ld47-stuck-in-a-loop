@@ -1,6 +1,7 @@
 using PathCreation;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class Car : MonoBehaviour
@@ -15,11 +16,14 @@ public class Car : MonoBehaviour
 	public Transform[] FireParticlesSpawner;
 	public GameObject FireParticlesPrefab;
 	public GameObject FireSoundPrefab;
+	public GameObject TeleportParticlePrefab;
 
 	public Image SpeedBar;
 
 	public AudioSource CarMotorSound;
+	public AudioSource SecondAudioSource; // Time is over
 	public CrashSounds CrashSounds;
+	public SimpleAudioEvent WarpSound;
 
 	private MeshCollider _roadMeshCollider;
 	private bool _isCrashing;
@@ -28,6 +32,7 @@ public class Car : MonoBehaviour
 	private Rigidbody _rigidbody;
 	private Rigidbody _attachedBody;
 	private float _barFraction;
+	private bool _victoryAchieved;
 
 	public float DistanceTraveled { get; private set; }
 	public float CurrentSpeed { get; private set; }
@@ -46,10 +51,19 @@ public class Car : MonoBehaviour
 		_attachedBody = _hingeJoin.connectedBody;
 		_rigidbody.MovePosition(PathCreator.path.GetPointAtDistance(DistanceTraveled));
 		_barFraction = MaxSpeed / 8f; // My graphic has 8 slots
+		_victoryAchieved = false;
 	}
 
 	public void Update()
 	{
+		if (_victoryAchieved)
+		{
+			if (Input.anyKeyDown)
+			{
+				SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+			}
+		}
+
 		var rotationSpeed = (_isCrashing ? MaxSpeed : CurrentSpeed) * -360 * Time.deltaTime;
 
 		foreach (var wheel in Wheels)
@@ -89,7 +103,7 @@ public class Car : MonoBehaviour
 
 	public void UpdateSpeed()
 	{
-		if (_isWarping || (!_isCrashing && Input.anyKey))
+		if ((_isWarping && !_victoryAchieved) || (!_isCrashing && Input.anyKey && !_victoryAchieved))
 		{
 			CurrentSpeed = CurrentSpeed + Acceleration * Time.deltaTime;
 		}
@@ -156,8 +170,6 @@ public class Car : MonoBehaviour
 	public void TimeWarp()
 	{
 		_isWarping = true;
-		MaxSpeed *= 1.2f;
-		CurrentSpeed = MaxSpeed;
 
 		Instantiate(FireSoundPrefab, transform.position, Quaternion.identity);
 
@@ -166,10 +178,16 @@ public class Car : MonoBehaviour
 
 	private IEnumerator WarpSequence()
 	{
+		Instantiate(TeleportParticlePrefab, transform.position, Quaternion.identity);
 		yield return new WaitForSeconds(0.4f);
 
+		WarpSound.Play(SecondAudioSource);
 		Instantiate(FireSoundPrefab, transform.position, Quaternion.identity);
-		gameObject.SetActive(false);
+		Instantiate(TeleportParticlePrefab, transform.position, Quaternion.identity);
+		transform.GetChild(0).gameObject.SetActive(false);
 		SpeedBar.fillAmount = 0;
+		Deceleration *= 2;
+
+		_victoryAchieved = true;
 	}
 }
