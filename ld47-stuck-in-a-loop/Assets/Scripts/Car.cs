@@ -17,7 +17,10 @@ public class Car : MonoBehaviour
 
 	public Image SpeedBar;
 
+	public AudioSource carMotorSound;
+
 	private bool _isCrashing;
+	private bool _isWarping;
 	private HingeJoint _hingeJoin;
 	private Rigidbody _rigidbody;
 	private Rigidbody _attachedBody;
@@ -30,6 +33,7 @@ public class Car : MonoBehaviour
 	{
 		RoadMeshCollider.enabled = false;
 		_isCrashing = false;
+		_isWarping = false;
 		DistanceTraveled = 0;
 		CurrentSpeed = 0;
 		_hingeJoin = GetComponent<HingeJoint>();
@@ -56,13 +60,15 @@ public class Car : MonoBehaviour
 		int barSlots = (int)(CurrentSpeed / _barFraction);
 
 		SpeedBar.fillAmount = (barSlots * _barFraction) / MaxSpeed;
+
+		carMotorSound.pitch = 0.2f + (0.8f * CurrentSpeed / MaxSpeed);
 	}
 
 	public void FixedUpdate()
 	{
 		UpdateSpeed();
 
-		if (!_isCrashing)
+		if (!_isCrashing || _isWarping)
 		{
 			UpdateCar();
 		}
@@ -70,7 +76,7 @@ public class Car : MonoBehaviour
 
 	public void UpdateSpeed()
 	{
-		if (!_isCrashing && Input.anyKey)
+		if (_isWarping || (!_isCrashing && Input.anyKey))
 		{
 			CurrentSpeed = CurrentSpeed + Acceleration * Time.deltaTime;
 		}
@@ -105,8 +111,6 @@ public class Car : MonoBehaviour
 		StartCoroutine(CrashSequence(distance));
 	}
 
-
-
 	private IEnumerator CrashSequence(float distance)
 	{
 		// Animate crash
@@ -133,5 +137,22 @@ public class Car : MonoBehaviour
 		_hingeJoin.connectedBody = _attachedBody;
 
 		_isCrashing = false;
+	}
+
+	public void TimeWarp()
+	{
+		_isWarping = true;
+		MaxSpeed *= 1.5f;
+
+		StartCoroutine(WarpSequence());
+	}
+
+	private IEnumerator WarpSequence()
+	{
+		// Animate warp
+		yield return new WaitForSeconds(0.3f);
+
+		gameObject.SetActive(false);
+		SpeedBar.fillAmount = 0;
 	}
 }
