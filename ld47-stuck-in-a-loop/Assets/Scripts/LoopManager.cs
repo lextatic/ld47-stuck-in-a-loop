@@ -36,7 +36,13 @@ public class LoopManager : MonoBehaviour
 
 	private void UpdateUI()
 	{
-		Scorebar.fillAmount = _currentScore / ScoreNeededForLevel;
+		var barFraction = ScoreNeededForLevel / 40f; // My graphic has 40 slots
+
+		int barSlots = (int)(_currentScore / barFraction);
+
+		Scorebar.fillAmount = (barSlots * barFraction) / ScoreNeededForLevel;
+
+		//Scorebar.fillAmount = _currentScore / ScoreNeededForLevel;
 	}
 
 	public void CurveDone(CurveOutcome outcome)
