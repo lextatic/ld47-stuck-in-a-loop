@@ -16,11 +16,19 @@ public class LoopManager : MonoBehaviour
 	public Car Car;
 
 	public Image Scorebar;
+	public GameObject ScorebarGlow;
 
 	public float ScoreNeededForLevel;
 	public float ScoreDecreaseRate;
 
 	private float _currentScore;
+	private float _barFraction;
+
+	public void Start()
+	{
+		_barFraction = ScoreNeededForLevel / 40f; // My graphic has 40 slots
+		ScorebarGlow.SetActive(false);
+	}
 
 	public void Update()
 	{
@@ -36,13 +44,11 @@ public class LoopManager : MonoBehaviour
 
 	private void UpdateUI()
 	{
-		var barFraction = ScoreNeededForLevel / 40f; // My graphic has 40 slots
+		int barSlots = (int)(_currentScore / _barFraction);
 
-		int barSlots = (int)(_currentScore / barFraction);
+		Scorebar.fillAmount = (barSlots * _barFraction) / ScoreNeededForLevel;
 
-		Scorebar.fillAmount = (barSlots * barFraction) / ScoreNeededForLevel;
-
-		//Scorebar.fillAmount = _currentScore / ScoreNeededForLevel;
+		ScorebarGlow.SetActive(_currentScore >= ScoreNeededForLevel);
 	}
 
 	public void CurveDone(CurveOutcome outcome)
