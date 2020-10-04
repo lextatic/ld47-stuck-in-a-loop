@@ -10,15 +10,16 @@ public class Car : MonoBehaviour
 	public float Acceleration = 5f;
 	public float Deceleration = 1f;
 
-	public MeshCollider RoadMeshCollider;
-
 	public Transform[] Wheels;
 	public Transform[] TurnAxis;
+	public Transform[] FireParticlesSpawner;
+	public GameObject FireParticlesPrefab;
 
 	public Image SpeedBar;
 
 	public AudioSource carMotorSound;
 
+	private MeshCollider _roadMeshCollider;
 	private bool _isCrashing;
 	private bool _isWarping;
 	private HingeJoint _hingeJoin;
@@ -31,7 +32,9 @@ public class Car : MonoBehaviour
 
 	private void Start()
 	{
-		RoadMeshCollider.enabled = false;
+		_roadMeshCollider = GameObject.FindGameObjectWithTag("Road").GetComponent<MeshCollider>();
+
+		_roadMeshCollider.enabled = false;
 		_isCrashing = false;
 		_isWarping = false;
 		DistanceTraveled = 0;
@@ -62,6 +65,14 @@ public class Car : MonoBehaviour
 		SpeedBar.fillAmount = (barSlots * _barFraction) / MaxSpeed;
 
 		carMotorSound.pitch = 0.2f + (0.8f * CurrentSpeed / MaxSpeed);
+
+		if (_isWarping)
+		{
+			foreach (var spawner in FireParticlesSpawner)
+			{
+				Instantiate(FireParticlesPrefab, spawner.position, spawner.rotation);
+			}
+		}
 	}
 
 	public void FixedUpdate()
@@ -114,14 +125,14 @@ public class Car : MonoBehaviour
 	private IEnumerator CrashSequence(float distance)
 	{
 		// Animate crash
-		RoadMeshCollider.enabled = true;
+		_roadMeshCollider.enabled = true;
 		_hingeJoin.connectedBody = null;
 		_attachedBody.AddTorque(new Vector3(Random.Range(-1000f, 1000f), 0, Random.Range(-1000f, 1000f)), ForceMode.VelocityChange);
 		_attachedBody.AddForce(0, 150, 0);
 
 		yield return new WaitForSeconds(2f);
 
-		RoadMeshCollider.enabled = false;
+		_roadMeshCollider.enabled = false;
 
 		// TODO: Resolve physics teleport
 
@@ -142,15 +153,15 @@ public class Car : MonoBehaviour
 	public void TimeWarp()
 	{
 		_isWarping = true;
-		MaxSpeed *= 1.5f;
+		MaxSpeed *= 1.2f;
+		CurrentSpeed = MaxSpeed;
 
 		StartCoroutine(WarpSequence());
 	}
 
 	private IEnumerator WarpSequence()
 	{
-		// Animate warp
-		yield return new WaitForSeconds(0.3f);
+		yield return new WaitForSeconds(0.4f);
 
 		gameObject.SetActive(false);
 		SpeedBar.fillAmount = 0;

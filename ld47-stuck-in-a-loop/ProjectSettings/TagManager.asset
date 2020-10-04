@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Managers
+  - Dynamic
+  - Road
   layers:
   - Default
   - TransparentFX

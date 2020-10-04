@@ -31,6 +31,15 @@ public class CurveManager : MonoBehaviour
 		_speedOverflow = 0;
 		_crashCheck = true;
 		_waitingNewLap = false;
+	}
+
+	public void BuildSceneObjects()
+	{
+		var previousDynamicObjects = GameObject.FindGameObjectsWithTag("Dynamic");
+		foreach (var dynamicObject in previousDynamicObjects)
+		{
+			DestroyImmediate(dynamicObject);
+		}
 
 		foreach (var curve in Curves)
 		{
@@ -41,11 +50,11 @@ public class CurveManager : MonoBehaviour
 			var mark2 = Instantiate(MarkExitPrefab);
 			mark2.transform.position = PathCreator.path.GetPointAtDistance(curve.ExitDistance);
 			mark2.transform.rotation = PathCreator.path.GetRotationAtDistance(curve.ExitDistance);
-
-			var machine = Instantiate(MachinePrefab);
-			machine.transform.position = PathCreator.path.GetPointAtDistance(0);
-			machine.transform.rotation = PathCreator.path.GetRotationAtDistance(0);
 		}
+
+		var machine = Instantiate(MachinePrefab);
+		machine.transform.position = PathCreator.path.GetPointAtDistance(0);
+		machine.transform.rotation = PathCreator.path.GetRotationAtDistance(0);
 	}
 
 	public void Update()
